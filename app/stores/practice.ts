@@ -1,14 +1,17 @@
-import type { MelodyData } from "~/lib/melody";
-import { atom } from "jotai";
+import { atom } from "jotai"
+import type { MelodyData } from "~/lib/melody"
 
 /** 再生位置（曲内 ms） */
-export const playbackPositionMsAtom = atom<number>(0);
+export const playbackPositionMsAtom = atom<number>(0)
 
 /** 曲データ（MelodyData） */
-export const melodyDataAtom = atom<MelodyData | null>(null);
+export const melodyDataAtom = atom<MelodyData | null>(null)
 
 /** ピッチデータ（50ms 刻みの MIDI 配列） */
-export const pitchDataAtom = atom<number[]>([]);
+export const pitchDataAtom = atom<number[]>([])
 
 /** 練習中かどうか */
-export const isPracticingAtom = atom<boolean>(false);
+export const isPracticingAtom = atom<boolean>(false)
+
+/** ガイドボーカル ON（歌あり） / OFF（オケのみ） */
+export const useGuideVocalAtom = atom<boolean>(false)

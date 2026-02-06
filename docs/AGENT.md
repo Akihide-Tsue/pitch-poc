@@ -19,6 +19,14 @@
 - **context7**: ライブラリの最新ドキュメント参照（MUI, Dexie, pitchfinder 等）
 - **cursor-ide-browser**: ブラウザでの動作確認・デバッグ
 
+## コーディング規約
+
+### 関数定義
+
+- **アロー関数を使用する**: `function` 宣言ではなく `const fn = () => {}` 形式を用いる
+- 例: `export const getData = () => { ... }`、`const Component = () => { ... }`
+- `export default` するコンポーネント: `const Page = () => { ... }; export default Page`
+
 ## ルーティング
 
 - `/` … ホーム

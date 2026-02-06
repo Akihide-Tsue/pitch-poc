@@ -1,7 +1,41 @@
-import { Midi } from "@tonejs/midi";
-import type { MelodyData, MelodyNote } from "~/lib/melody";
+import type { MelodyData, MelodyNote } from "~/lib/melody"
 
-const MELODY_TRACK_NAMES = ["Vocal", "Melody", "Voice"];
+const MELODY_TRACK_NAMES = ["Vocal", "Melody", "Voice"]
+
+/**
+ * @tonejs/midi を動的インポート（Vite/ESM 互換）
+ */
+async function getMidiClass(): Promise<{
+  fromUrl: (url: string) => Promise<{
+    tracks: Array<{
+      name?: string
+      notes: Array<{ time: number; duration: number; midi: number }>
+    }>
+    duration: number
+    header?: { tempos?: Array<{ bpm: number }> }
+  }>
+}> {
+  const mod = await import("@tonejs/midi")
+  const raw =
+    (mod as { default?: { Midi?: unknown; fromUrl?: unknown }; Midi?: unknown })
+      .default ?? mod
+  const Midi =
+    (raw as { Midi?: { fromUrl?: unknown } }).Midi ??
+    (raw as { fromUrl?: unknown })
+  if (typeof (Midi as { fromUrl?: (u: string) => Promise<unknown> })?.fromUrl !== "function") {
+    throw new Error("MIDI ライブラリの読み込みに失敗しました")
+  }
+  return Midi as {
+    fromUrl: (url: string) => Promise<{
+      tracks: Array<{
+        name?: string
+        notes: Array<{ time: number; duration: number; midi: number }>
+      }>
+      duration: number
+      header?: { tempos?: Array<{ bpm: number }> }
+    }>
+  }
+}
 
 /**
  * MIDI ファイルをパースし MelodyData に変換
@@ -11,15 +45,15 @@ export async function parseMidiToMelodyData(
   url: string,
   songId: string,
 ): Promise<MelodyData> {
-  const midi = await Midi.fromUrl(url);
+  const Midi = await getMidiClass()
+  const midi = await Midi.fromUrl(url)
 
   const track =
-    midi.tracks.find((t) =>
-      MELODY_TRACK_NAMES.some(
-        (name) =>
-          t.name?.toLowerCase().includes(name.toLowerCase()),
+    midi.tracks.find((t: { name?: string }) =>
+      MELODY_TRACK_NAMES.some((name) =>
+        t.name?.toLowerCase().includes(name.toLowerCase()),
       ),
-    ) ?? midi.tracks[0];
+    ) ?? midi.tracks[0]
 
   if (!track || !track.notes.length) {
     return {
@@ -27,21 +61,26 @@ export async function parseMidiToMelodyData(
       totalDurationMs: 0,
       trackName: track?.name,
       notes: [],
-    };
+    }
   }
 
-  const notes: MelodyNote[] = track.notes.map((n) => ({
-    startMs: n.time * 1000,
-    endMs: (n.time + n.duration) * 1000,
-    pitch: n.midi,
-  }));
+  const notes: MelodyNote[] = track.notes.map(
+    (n: { time: number; duration: number; midi: number }) => ({
+      startMs: n.time * 1000,
+      endMs: (n.time + n.duration) * 1000,
+      pitch: n.midi,
+    }),
+  )
 
-  const totalDurationMs = midi.duration * 1000;
+  const totalDurationMs = midi.duration * 1000
+  const bpm =
+    midi.header?.tempos?.[0]?.bpm ?? undefined
 
   return {
     songId,
     totalDurationMs,
     trackName: track.name,
     notes,
-  };
+    bpm,
+  }
 }
