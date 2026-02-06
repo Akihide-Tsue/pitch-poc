@@ -26,6 +26,7 @@ import {
   pitchDataAtom,
   playbackPositionMsAtom,
   useGuideVocalAtom,
+  volumeAtom,
 } from "~/stores/practice"
 
 type LyricsJsonEntry = { time: number; lyric: string }
@@ -37,6 +38,8 @@ const Practice = () => {
   const setIsPracticing = useSetAtom(isPracticingAtom)
   const useGuideVocal = useAtomValue(useGuideVocalAtom)
   const setUseGuideVocal = useSetAtom(useGuideVocalAtom)
+  const volume = useAtomValue(volumeAtom)
+  const setVolume = useSetAtom(volumeAtom)
   const melodyData = useAtomValue(melodyDataAtom)
   const pitchData = useAtomValue(pitchDataAtom)
   const positionMs = useAtomValue(playbackPositionMsAtom)
@@ -60,6 +63,7 @@ const Practice = () => {
     setPitchData,
     setIsPracticing,
     pitchDetection,
+    volume,
   })
 
   const [loading, setLoading] = useState(true)
@@ -69,6 +73,25 @@ const Practice = () => {
   useEffect(() => {
     if (!isPracticing) setViewPositionMs(positionMs)
   }, [isPracticing, positionMs])
+
+  // キーボードの音量キー（VolumeUp/VolumeDown/VolumeMute）でアプリ音量とUIスライダーを連動
+  useEffect(() => {
+    const STEP = 0.05
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "VolumeUp") {
+        e.preventDefault()
+        setVolume((v) => Math.min(1, v + STEP))
+      } else if (e.code === "VolumeDown") {
+        e.preventDefault()
+        setVolume((v) => Math.max(0, v - STEP))
+      } else if (e.code === "VolumeMute") {
+        e.preventDefault()
+        setVolume((v) => (v > 0 ? 0 : 1))
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [setVolume])
 
   useEffect(() => {
     let cancelled = false
@@ -150,6 +173,10 @@ const Practice = () => {
         onSeekForward={playback.seekForward}
         useGuideVocal={useGuideVocal}
         seekSeconds={playback.seekSeconds}
+        volume={volume}
+        onVolumeChange={(_, value) =>
+          setVolume(Array.isArray(value) ? value[0] : value)
+        }
         disabled={{
           hasMelodyData: !!melodyData,
           isPracticing,

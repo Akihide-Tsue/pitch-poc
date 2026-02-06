@@ -1,9 +1,11 @@
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
+import Slider from "@mui/material/Slider"
+import Typography from "@mui/material/Typography"
 
 /**
  * 練習画面のコントロールボタン群。
- * 開始・停止・再開・ガイド ON/OFF・秒送り・戻しを提供する。
+ * 開始・停止・再開・ガイド ON/OFF・秒送り・戻し・音量を提供する。
  *
  * @param onStart - 開始ボタンクリック時
  * @param onStop - 停止ボタンクリック時
@@ -13,6 +15,8 @@ import Button from "@mui/material/Button"
  * @param onSeekForward - 秒送るボタンクリック時
  * @param useGuideVocal - ガイドボーカル ON かどうか
  * @param seekSeconds - 秒送り・戻しの単位（表示用）
+ * @param volume - 再生音量（0〜1）
+ * @param onVolumeChange - 音量変更時
  * @param disabled - 各ボタンの無効化条件
  */
 export const PracticeControls = ({
@@ -24,6 +28,8 @@ export const PracticeControls = ({
   onSeekForward,
   useGuideVocal,
   seekSeconds,
+  volume,
+  onVolumeChange,
   disabled,
 }: {
   onStart: () => void
@@ -34,6 +40,8 @@ export const PracticeControls = ({
   onSeekForward: () => void
   useGuideVocal: boolean
   seekSeconds: number
+  volume: number
+  onVolumeChange: (_: Event, value: number | number[]) => void
   disabled: {
     hasMelodyData: boolean
     isPracticing: boolean
@@ -41,7 +49,8 @@ export const PracticeControls = ({
     totalDurationMs: number
   }
 }) => (
-  <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 2 }}>
+  <Box sx={{ mb: 2 }}>
+    <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 1 }}>
     <Button
       variant="contained"
       onClick={onStart}
@@ -94,5 +103,21 @@ export const PracticeControls = ({
     >
       {seekSeconds}秒送る
     </Button>
+    </Box>
+    <Box sx={{ display: "flex", alignItems: "center", gap: 2, maxWidth: 200 }}>
+      <Typography variant="body2" color="text.secondary" sx={{ minWidth: 40 }}>
+        音量
+      </Typography>
+      <Slider
+        value={volume}
+        onChange={onVolumeChange}
+        min={0}
+        max={1}
+        step={0.05}
+        size="small"
+        valueLabelDisplay="auto"
+        valueLabelFormat={(v) => `${Math.round(v * 100)}%`}
+      />
+    </Box>
   </Box>
 )

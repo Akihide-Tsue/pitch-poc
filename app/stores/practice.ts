@@ -15,3 +15,6 @@ export const isPracticingAtom = atom<boolean>(false)
 
 /** ガイドボーカル ON（歌あり） / OFF（オケのみ） */
 export const useGuideVocalAtom = atom<boolean>(false)
+
+/** 再生音量（0.0〜1.0）※ iOS は端末の最小音量がゼロにならないことがあるため、初期値は控えめに */
+export const volumeAtom = atom<number>(0.5)

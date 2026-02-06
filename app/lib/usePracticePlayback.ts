@@ -15,6 +15,8 @@ export interface UsePracticePlaybackOptions {
   setPitchData: React.Dispatch<React.SetStateAction<number[]>>
   setIsPracticing: (v: boolean) => void
   pitchDetection: UsePitchDetectionResult
+  /** 再生音量（0.0〜1.0） */
+  volume?: number
 }
 
 /**
@@ -52,6 +54,7 @@ export const usePracticePlayback = (
     setPitchData,
     setIsPracticing,
     pitchDetection,
+    volume = 1.0,
   } = options
 
   const instRef = useRef<HTMLAudioElement | null>(null)
@@ -180,6 +183,15 @@ export const usePracticePlayback = (
     },
     [totalDurationMs, setPlaybackPosition],
   )
+
+  useEffect(() => {
+    const inst = instRef.current
+    const vocal = vocalRef.current
+    if (!inst || !vocal) return
+    const v = Math.max(0, Math.min(1, volume))
+    inst.volume = v
+    vocal.volume = v
+  }, [volume])
 
   useEffect(() => {
     const inst = instRef.current
