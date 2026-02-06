@@ -93,6 +93,32 @@ const Practice = () => {
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [setVolume])
 
+  const totalDurationMs = melodyData?.totalDurationMs ?? 0
+  const handleLyricSeek = useCallback(
+    (timeMs: number) => {
+      playback.seekToMs(timeMs)
+      if (!isPracticing) setViewPositionMs(timeMs)
+    },
+    [playback, isPracticing],
+  )
+  const handleSeekBackward = useCallback(() => {
+    playback.seekBackward()
+    if (!isPracticing) {
+      const newMs = Math.max(0, positionMs - playback.seekSeconds * 1000)
+      setViewPositionMs(newMs)
+    }
+  }, [playback, isPracticing, positionMs])
+  const handleSeekForward = useCallback(() => {
+    playback.seekForward()
+    if (!isPracticing) {
+      const newMs = Math.min(
+        totalDurationMs,
+        positionMs + playback.seekSeconds * 1000,
+      )
+      setViewPositionMs(newMs)
+    }
+  }, [playback, isPracticing, positionMs, totalDurationMs])
+
   useEffect(() => {
     let cancelled = false
     setLoading(true)
@@ -140,7 +166,6 @@ const Practice = () => {
 
   const lyrics = melodyData?.lyrics ?? []
   const lyricLines = getLyricLines(lyrics, positionMs)
-  const totalDurationMs = melodyData?.totalDurationMs ?? 0
 
   return (
     <Container maxWidth="md" sx={{ py: 3 }}>
@@ -169,8 +194,8 @@ const Practice = () => {
         onStop={playback.stopPlayback}
         onResume={playback.resumePlayback}
         onToggleGuideVocal={playback.toggleGuideVocal}
-        onSeekBackward={playback.seekBackward}
-        onSeekForward={playback.seekForward}
+        onSeekBackward={handleSeekBackward}
+        onSeekForward={handleSeekForward}
         useGuideVocal={useGuideVocal}
         seekSeconds={playback.seekSeconds}
         volume={volume}
@@ -224,7 +249,7 @@ const Practice = () => {
         </Box>
       </Paper>
 
-      <LyricsPanel lyricLines={lyricLines} onSeek={playback.seekToMs} />
+      <LyricsPanel lyricLines={lyricLines} onSeek={handleLyricSeek} />
 
       <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
         <Button
