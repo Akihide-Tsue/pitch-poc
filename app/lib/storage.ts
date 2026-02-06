@@ -1,10 +1,10 @@
-import { db, LAST_RECORDING_ID, type LastSavedRecording } from "~/lib/db";
+import { db, LAST_RECORDING_ID, type LastSavedRecording } from "~/lib/db"
 
-function isIndexedDBAvailable(): boolean {
+const isIndexedDBAvailable = (): boolean => {
   try {
-    return typeof indexedDB !== "undefined";
+    return typeof indexedDB !== "undefined"
   } catch {
-    return false;
+    return false
   }
 }
 
@@ -12,13 +12,13 @@ function isIndexedDBAvailable(): boolean {
  * 直近 1 件の録音を取得
  * IndexedDB 不可時は null を返す（呼び出し側でエラー表示）
  */
-export async function getLastSavedRecording(): Promise<LastSavedRecording | null> {
-  if (!isIndexedDBAvailable()) return null;
+export const getLastSavedRecording = async (): Promise<LastSavedRecording | null> => {
+  if (!isIndexedDBAvailable()) return null
   try {
-    const record = await db.recordings.get(LAST_RECORDING_ID);
-    return record ?? null;
+    const record = await db.recordings.get(LAST_RECORDING_ID)
+    return record ?? null
   } catch {
-    return null;
+    return null
   }
 }
 
@@ -26,17 +26,17 @@ export async function getLastSavedRecording(): Promise<LastSavedRecording | null
  * 直近 1 件の録音を保存（上書き）
  * IndexedDB 不可時は false を返す（呼び出し側でエラー表示）
  */
-export async function setLastSavedRecording(
+export const setLastSavedRecording = async (
   data: Omit<LastSavedRecording, "id">,
-): Promise<boolean> {
-  if (!isIndexedDBAvailable()) return false;
+): Promise<boolean> => {
+  if (!isIndexedDBAvailable()) return false
   try {
     await db.recordings.put({
       ...data,
       id: LAST_RECORDING_ID,
-    });
-    return true;
+    })
+    return true
   } catch {
-    return false;
+    return false
   }
 }

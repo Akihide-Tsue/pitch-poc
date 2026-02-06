@@ -4,35 +4,35 @@
  */
 
 export interface MelodyNote {
-  startMs: number;
-  endMs: number;
-  pitch: number;
-  frequency?: number;
-  noteName?: string;
+  startMs: number
+  endMs: number
+  pitch: number
+  frequency?: number
+  noteName?: string
 }
 
 export interface LyricEntry {
-  timeMs: number;
-  text: string;
+  timeMs: number
+  text: string
 }
 
 export interface MelodyData {
-  songId: string;
-  totalDurationMs: number;
-  trackName?: string;
-  notes: MelodyNote[];
-  lyrics?: LyricEntry[];
+  songId: string
+  totalDurationMs: number
+  trackName?: string
+  notes: MelodyNote[]
+  lyrics?: LyricEntry[]
+  /** BPM（小節線表示用。未設定時は120） */
+  bpm?: number
 }
 
 /**
  * 指定時刻における正解ピッチ（MIDI）を取得
  */
-export function getTargetPitchAtTime(
+export const getTargetPitchAtTime = (
   notes: MelodyNote[],
   timeMs: number,
-): number | null {
-  const note = notes.find(
-    (n) => timeMs >= n.startMs && timeMs < n.endMs,
-  );
-  return note ? note.pitch : null;
+): number | null => {
+  const note = notes.find((n) => timeMs >= n.startMs && timeMs < n.endMs)
+  return note ? note.pitch : null
 }
