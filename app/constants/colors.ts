@@ -3,19 +3,19 @@
  */
 
 /** 音程バー（五線譜）グリッド線 */
-export const PITCH_GRID_LINE = "#444"
+export const PITCH_GRID_LINE = "#666"
 
 /** 音程バー ド（C）の線 */
-export const PITCH_C_LINE = "#8b7355"
+export const PITCH_C_LINE = "#FFEF60"
 
 /** 音程バー 小節の縦線 */
-export const PITCH_BAR_LINE = "#999"
+export const PITCH_BAR_LINE = "#ccc"
 
 /** 音程バー 曲のノート（青） */
 export const PITCH_NOTE = "#64b5f6"
 
 /** 音程バー 現在位置の縦線（赤） */
-export const PITCH_POSITION_LINE = "#d32f2f"
+export const PITCH_POSITION_LINE = "#E63C3C"
 
 /** チェックマーク 円の塗り */
 export const CHECK_CIRCLE_FILL = "#1976d2"
