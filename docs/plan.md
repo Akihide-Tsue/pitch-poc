@@ -10,7 +10,7 @@
 - **歌詞**は **lyrics.json** から取得する。  
 - 練習画面 URL は **/practice のみ**（1 曲固定）。サンプル曲は **BNM_MIDI.mid**（`public/BNM_MIDI.mid`）。  
 - **PoC の範囲は Web のみ**。Capacitor・ネイティブビルド・iOS の Photos 保存・テスト（Vitest/Playwright）は PoC に含めない。  
-- **音源の責任分け**: **オケ音源**（Brand_New_Music_inst.wav）・**ガイドボーカル音源**（PoC では省略可）・**ガイド用 MIDI**（正解ノートデータのみ）の **3 ファイル**を同時に扱う。MIDI は DTM 用音源で再生する想定のためそのまま再生するとサイン波等になるので、**再生には使わずガイド用のノートデータのみ**使う。  
+- **音源の責任分け**: **オケ音源**（Brand_New_Music_inst.wav）・**ガイドボーカル音源**（Brand_New_Music.wav、歌あり）・**ガイド用 MIDI**（正解ノートデータのみ）の **3 ファイル**を同時に扱う。**ガイドボーカル**は PoC に含め、練習・再生中にボタンでオケ／歌ありを切り替え可能にする。MIDI は再生には使わずノートデータのみ使用。  
 - **「歌唱開始」ボタン**を押したら**録音も伴奏再生も同時に開始**する。**pitchData の 0ms は「歌唱開始」押下時**とする。  
 - **五線譜**: 「五線譜風でよい」**簡易描画**（Canvas/SVG 等）。曲の**最低〜最高ノート**が写っていればよい。調号・拍子は PoC で**省略**。  
 - **一時停止**: 一時停止中は**録音も止める**。**停止＝歌唱終了**でよい（停止ボタンで終了し、結果表示へ。再開は PoC で省略可）。  
@@ -46,13 +46,12 @@
 | --- | -------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | 1 | 曲選択             | 曲一覧から 1 曲を選択（PoC では 1 曲固定）。                                                                       |
 | 2 | 曲設定・歌唱開始   | 曲の開始位置などを設定。「**歌唱開始**」ボタンで**伴奏再生と録音・ピッチ検出を同時に開始**。midikaraoke.app の「Start Song」に相当。 |
-| 3 | カラオケ風 UI      | 曲の音程バー（正解メロディ）と歌唱中の音程バーをリアルタイム表示。**歌詞**を再生位置に同期して表示。必要に応じて**一時停止**。 |
+| 3 | カラオケ風 UI      | 曲の音程バー（正解メロディ）と歌唱中の音程バーをリアルタイム表示。**歌詞**を再生位置に同期して表示。**ガイドボーカル切替**ボタンでオケ／歌ありを切り替え。必要に応じて**一時停止**。 |
 | 4 | 歌唱後の保存選択   | 歌唱終了後、**音程一致率（%）を表示**したうえで「保存する／しない」を選択。                                        |
 | 5 | 保存した録音の再生 | 保存後は「今すぐ再生」で再生画面へ。直近 1 件の録音＋**歌唱時の音程バー**＋**歌詞**を再生進行に同期して表示。直近 1 件がないときは**「まだ録音がありません」**を表示し、練習画面へ誘導する。 |
 
 ### 1.2 PoC で省くもの
 
-- **ガイド／ボーカル on/off** … PoC では再生は**オケ音源**のみ。**ガイドボーカル音源**は拡張で対応（切り替え UI も拡張で）。
 - **保存一覧・削除** … 一覧画面は作らない。保存は**直近 1 件のみ**。保存後に「今すぐ再生」で再生画面へ。
 
 ### 1.3 音程一致率のルール
@@ -92,7 +91,7 @@
 | 保存             | **IndexedDB**（**Dexie.js** でラップ）。録音 Blob も IndexedDB に保存可能。Capacitor では WebView の IndexedDB を利用。 |
 | ネイティブ配布   | **Capacitor**（iOS / Android）。PoC に含めない（拡張で対応）。 |
 | ピッチ検出       | **Web Audio API**（マイク → AudioWorklet / ScriptProcessor）＋ **pitchfinder**（YIN 等） |
-| オケ再生         | **オケ音源**（Brand_New_Music_inst.wav）。HTML5 Audio または Tone.js の Player で再生。ガイド用 MIDI はノートデータのみ使用、再生には使わない。HLS は PoC では使わない（単一音声ファイルで十分）。 |
+| オケ再生         | **オケ音源**（Brand_New_Music_inst.wav）と**ガイドボーカル音源**（Brand_New_Music.wav、歌あり）を用意。再生中にボタンで切り替え。HTML5 Audio または Tone.js の Player で再生。ガイド用 MIDI はノートデータのみ使用。 |
 | 録音             | **MediaRecorder API**（Web）。PoC では Web のみ。iOS の Photos 保存は PoC に含めない。 |
 | メロディ（正解） | **ガイド用 MIDI**（`@tonejs/midi` でパース → `MelodyNote[]`）。ノートデータのみ。再生には使わない（そのまま再生するとサイン波等になる）。 |
 | テスト           | PoC に**含めない**（Vitest・Playwright は拡張で対応）。 |
@@ -101,7 +100,7 @@
 
 - **Web で開発**: ブラウザで `pnpm dev` してピッチ検出・再生・録音を確認。マイク権限が必要。
 - **目標レイテンシ**: マイク → ピッチ検出 → UI 更新まで **50〜100ms 程度**。
-- **メロディ・音程バー**: 正解データは **ガイド用 MIDI**（ノートのみ。再生には使わない）。`@tonejs/midi` でパースし、`MelodyNote[]` に変換。音程バーは**五線譜風の簡易描画**（曲の最低〜最高ノートが写る範囲。調号・拍子は省略）。**歌詞は lyrics.json**、**オケはオケ音源**（Brand_New_Music_inst.wav）を使用する。
+- **メロディ・音程バー**: 正解データは **ガイド用 MIDI**（ノートのみ。再生には使わない）。`@tonejs/midi` でパースし、`MelodyNote[]` に変換。音程バーは**五線譜風の簡易描画**（曲の最低〜最高ノートが写る範囲。調号・拍子は省略）。**歌詞は lyrics.json**。**オケ**（Brand_New_Music_inst.wav）と**ガイドボーカル**（Brand_New_Music.wav）をボタンで切り替えて再生する。
 - **対象ブラウザ**: PoC は Web。**iOS で Capacitor リリースする前提**のため、**Safari（WebKit）の制約はできるだけ確認**する。PoC でも Safari（特に iOS Safari）で動作確認を推奨。
 
 ---
@@ -113,7 +112,7 @@
 **正解メロディはガイド用 MIDI ファイル**から得る（ノートデータのみ。再生には使わない）。MIDI は DTM 用音源ライブラリで再生する想定のため、**そのまま再生するとサイン波等**になってしまう。アプリでは**ガイド用**としてノート（音高・開始・終了時刻）のみをパースし、音程バー・一致率に使う。melody.json は使わない。静的アセット（public）に配置。
 
 **音源の責任分け（制作チームと合わせる）**  
-曲ごとに **オケ音源**・**ガイドボーカル音源**・**ガイド用 MIDI** の 3 ファイルを同時に扱うのが適切。PoC ではオケ音源＋ガイド用 MIDI＋lyrics.json を使用し、ガイドボーカル音源は拡張で対応する。
+曲ごとに **オケ音源**・**ガイドボーカル音源**・**ガイド用 MIDI** の 3 ファイルを同時に扱う。PoC ではオケ音源（Brand_New_Music_inst.wav）＋ガイドボーカル音源（Brand_New_Music.wav）＋ガイド用 MIDI＋lyrics.json を使用し、練習・再生中にボタンでオケ／歌ありを切り替え可能にする。
 
 **ガイド用 MIDI の中身（楽曲制作チーム・実装者向け）**
 
@@ -123,18 +122,18 @@
 | **ボーカル（メロディ）の音程・開始/終了時間** | ○ | ボーカルは**音声ではなくノート（音高＋開始・終了時刻）**として格納される。各ノートは「何の音（pitch）を、いつからいつまで鳴らすか」の情報。アプリではこれを **MelodyNote[]**（startMs, endMs, pitch）に変換し、**音程バー描画・一致率算出**に使う。 |
 | **オケ** | アプリでは使わない | **オケ音源**（Brand_New_Music_inst.wav）を別ファイルで用意する。ガイド用 MIDI に伴奏トラックが含まれていても再生には使わない。 |
 
-まとめ: **ガイド用 MIDI** には**メロディのノート（音程＋時間）**のみ使う。再生には使わない（そのまま再生するとサイン波等になる）。アプリはノートで正解を表示・採点する。**歌詞は lyrics.json**、**オケはオケ音源（Brand_New_Music_inst.wav）**で別提供。ガイドボーカルを鳴らす場合は**ガイドボーカル音源**を別ファイルで用意する（PoC では省略可）。
+まとめ: **ガイド用 MIDI** には**メロディのノート（音程＋時間）**のみ使う。再生には使わない。アプリはノートで正解を表示・採点する。**歌詞は lyrics.json**。**オケ音源**（Brand_New_Music_inst.wav）と**ガイドボーカル音源**（Brand_New_Music.wav）を用意し、PoC では再生中にボタンで切り替え可能にする。
 
 **実装の流れ（一意に決める）**  
 
 1. MIDI を `public/songs/<songId>/BNM_MIDI.mid` 等から読み込む  
 2. `@tonejs/midi` でパースし、メロディトラックのノートを **MelodyData**（**MelodyNote[]**）に変換する  
 3. 歌詞は **lyrics.json**（`app/constants/songs/<songId>/lyrics.json`、形式は `{ time, lyric }[]`、time は秒）から取得し、**LyricEntry[]**（timeMs, text）に変換する  
-4. 音程バー描画・一致率算出に MelodyNote[] を、**歌詞表示**に LyricEntry[] を使う。**オケ**は **Brand_New_Music_inst.wav** を HTML5 Audio または Tone.js の Player で再生する  
+4. 音程バー描画・一致率算出に MelodyNote[] を、**歌詞表示**に LyricEntry[] を使う。**オケ**（Brand_New_Music_inst.wav）と**ガイドボーカル**（Brand_New_Music.wav）を HTML5 Audio または Tone.js の Player で再生し、ボタンで切り替える  
 
 - **ガイド用 MIDI の配置**: **サンプル曲は BNM_MIDI.mid** を `public/BNM_MIDI.mid` に置く。時刻は tick を BPM でミリ秒に変換。**メロディのノートのみ**使用。歌詞・伴奏トラックはパースしても使わない。**再生には使わない**（ノートデータのみ）。
-- **オケ音源**: **Brand_New_Music_inst.wav** を `public/Brand_New_Music_inst.wav` に配置。HTML5 Audio または Tone.Player で再生する。
-- **ガイドボーカル音源**: 拡張で「正解の歌を聴く」用に別ファイル（例: guide_vocal.mp3）を用意する。PoC では省略し、再生はオケのみ。
+- **オケ音源**: **Brand_New_Music_inst.wav** を `public/Brand_New_Music_inst.wav` に配置。
+- **ガイドボーカル音源**: **Brand_New_Music.wav**（歌あり）を `public/Brand_New_Music.wav` に配置。PoC では練習・再生中にボタンでオケ／歌ありを切り替え可能にする。
 
 **型定義（MIDI パース結果を格納する型。melody.json は用意しない）**:
 
@@ -210,7 +209,7 @@ interface LastSavedRecording {
 - **IndexedDB**: Dexie のストア名（例: `recordings`）およびキー（例: `'last'`）、またはストア名 `lastSavedRecording`。
 - **録音ファイル名**（PoC では IndexedDB に Blob 保存のため不要。Filesystem は拡張で使用）: Web は `last_recording.webm`。
 - **ピッチ間隔**: `PITCH_INTERVAL_MS = 50`
-- **曲・Unit（PoC 固定）**: サンプル曲は **BNM_MIDI.mid** のみ。`songId = 'brand-new-music'`, `unitId = 'unit-1'`。MIDI は `public/BNM_MIDI.mid`、**lyrics.json** は `app/constants/lyrics.json`、オケ音源は **Brand_New_Music_inst.wav** を `public/Brand_New_Music_inst.wav` に配置。**unitStartMs** は「歌唱開始」押下時の曲内の再生位置（ms）、**unitEndMs** は停止した瞬間の曲内の再生位置（ms）を保存する（曲全体なら unitEndMs = totalDurationMs、途中停止時はその時点の再生位置）。melody.json は不要。歌詞は MIDI には不要（lyrics.json のみ）。
+- **曲・Unit（PoC 固定）**: サンプル曲は **BNM_MIDI.mid** のみ。`songId = 'brand-new-music'`, `unitId = 'unit-1'`。MIDI は `public/BNM_MIDI.mid`、**lyrics.json** は `app/constants/songs/brand-new-music/lyrics.json`、オケ音源は **Brand_New_Music_inst.wav** を `public/Brand_New_Music_inst.wav`、ガイドボーカル音源は **Brand_New_Music.wav** を `public/Brand_New_Music.wav` に配置。**unitStartMs** は「歌唱開始」押下時の曲内の再生位置（ms）、**unitEndMs** は停止した瞬間の曲内の再生位置（ms）を保存する（曲全体なら unitEndMs = totalDurationMs、途中停止時はその時点の再生位置）。melody.json は不要。歌詞は MIDI には不要（lyrics.json のみ）。
 
 ### 4.5 拡張: 歌唱区間（セグメント）— フル曲の一部だけ歌唱
 
@@ -259,7 +258,8 @@ PoC では 1 曲を曲頭から歌唱する想定だが、拡張で「フル MID
 
 ### 5.3 練習画面の UI
 
-- **「歌唱開始」ボタン**: 押下で**伴奏再生（カラオケ MP3）と録音・ピッチ検出を同時に開始**。**pitchData の 0ms はこの押下時**。**停止**ボタンで録音・伴奏を止め、歌唱終了（停止＝終了）。
+- **「歌唱開始」ボタン**: 押下で**伴奏再生（オケ音源）と録音・ピッチ検出を同時に開始**。**pitchData の 0ms はこの押下時**。**停止**ボタンで録音・伴奏を止め、歌唱終了（停止＝終了）。
+- **ガイドボーカル切替**: 再生中にボタンで**オケ**（Brand_New_Music_inst.wav）と**歌あり**（Brand_New_Music.wav）を切り替える。初期状態はオケ。
 - **音程バー**: ピッチ（MIDI）を**五線譜風に簡易描画**。曲の**最低〜最高ノート**が写る範囲。調号・拍子は省略。曲（MIDI から得た notes）＋ 歌唱（50ms 刻み MIDI 配列）。一致なら緑・不一致ならグレー等。
 - **歌詞**: **lyrics.json** から取得した歌詞を**再生位置に同期して表示**する。現在の再生位置に対応する歌詞を 1 行（または数行）表示。歌詞が無い曲（lyrics.json が無い）では非表示でよい。
 - 現在位置の縦線（再生経過に合わせて移動）
@@ -268,7 +268,7 @@ PoC では 1 曲を曲頭から歌唱する想定だが、拡張で「フル MID
 ### 5.4 再生画面の UI
 
 - **直近 1 件がないとき**: **「まだ録音がありません」**を表示し、**「練習する」**ボタン等で練習画面へ誘導する。リダイレクトせず、画面内でメッセージ＋誘導でよい。
-- **直近 1 件があるとき**: **伴奏＋歌声**を同時に再生（カラオケ MP3 で伴奏、録音した歌声を重ねて再生）。再生／一時停止。曲の音程バー＋歌唱の音程バー＋**歌詞**（再生位置に同期）＋現在位置の縦線。「練習に戻る」
+- **直近 1 件があるとき**: **伴奏＋歌声**を同時に再生（オケ音源で伴奏、録音した歌声を重ねて再生）。**ガイドボーカル切替**ボタンでオケ／歌ありを切り替え可能。再生／一時停止。曲の音程バー＋歌唱の音程バー＋**歌詞**（再生位置に同期）＋現在位置の縦線。「練習に戻る」
 - 歌唱ピッチ: `index = Math.floor(playbackTimeMs / intervalMs)` → `pitchData[index]` を表示（歌声の 0ms 起点）。曲の音程バーは unitStartMs + playbackTimeMs の位置の正解を表示。
 - 歌詞: 曲の再生位置（unitStartMs + playbackTimeMs）に対応する **LyricEntry** を表示。**lyrics.json** から取得した歌詞を使う。
 
@@ -331,13 +331,13 @@ function computeScore(
 4. **状態管理**: **Jotai** で練習状態・再生位置・録音メタデータ等を管理。
 5. **UI**: **MUI**（ThemeProvider, CssBaseline）と必要コンポーネントを配置。
 6. **保存**: **Dexie.js** で IndexedDB をラップ。`lib/db.ts` で DB 定義、`lib/storage.ts` で getLastSavedRecording / setLastSavedRecording を実装。**IndexedDB 不可時は保存せずエラー表示のみ**。
-7. **サンプル曲**: **BNM_MIDI.mid** を `public/BNM_MIDI.mid`、**Brand_New_Music_inst.wav** を `public/Brand_New_Music_inst.wav` に配置。**lyrics.json** は `app/constants/lyrics.json` に配置（constants フォルダに格納）。`lib/midi.ts` で MIDI をパースし `MelodyData`（MelodyNote[]）に変換する。歌詞は **lyrics.json** から import または読み込みで **LyricEntry[]** に変換する。**オケ**は Brand_New_Music_inst.wav を HTML5 Audio または Tone.Player で再生する。
+7. **サンプル曲**: **BNM_MIDI.mid** を `public/BNM_MIDI.mid`、**Brand_New_Music_inst.wav**（オケ）と**Brand_New_Music.wav**（歌あり）を `public/` に配置。**lyrics.json** は `app/constants/songs/brand-new-music/lyrics.json` に配置。`lib/midi.ts` で MIDI をパースし `MelodyData`（MelodyNote[]）に変換する。歌詞は **lyrics.json** から読み込みで **LyricEntry[]** に変換する。**オケ**と**ガイドボーカル**を HTML5 Audio または Tone.Player で再生し、ボタンで切り替える。
 8. **型・ユーティリティ**: `lib/melody.ts`（MelodyNote, MelodyData, LyricEntry, getTargetPitchAtTime）、`lib/pitch.ts`（frequencyToMidi）、`lib/midi.ts`（MIDI パース → MelodyData）、`lib/lyrics.ts` 等（lyrics.json 読み込み → LyricEntry[]）。
 
 ### Phase 2: ホーム・練習画面（ピッチなし）
 
 1. **ホーム**: MUI でレイアウト。曲選択（1 曲固定可）・曲設定（任意）。「練習する」で TanStack Router の練習画面へ遷移。
-2. **練習画面の骨組み**: **「歌唱開始」で伴奏（カラオケ MP3）と録音・ピッチ検出を同時開始**（pitchData の 0ms は歌唱開始押下時）。音程バーは**五線譜風の簡易描画**（曲の最低〜最高ノートが写る範囲。調号・拍子は省略）。**歌詞**を **lyrics.json** から読み込み、再生位置に同期して表示。Unit 区間の曲の音程バー、時間軸・現在位置の縦線。Jotai で再生位置・曲データを保持。
+2. **練習画面の骨組み**: **「歌唱開始」で伴奏（オケ音源）と録音・ピッチ検出を同時開始**（pitchData の 0ms は歌唱開始押下時）。**ガイドボーカル切替**ボタンでオケ／歌ありを切り替え。音程バーは**五線譜風の簡易描画**（曲の最低〜最高ノートが写る範囲。調号・拍子は省略）。**歌詞**を **lyrics.json** から読み込み、再生位置に同期して表示。Unit 区間の曲の音程バー、時間軸・現在位置の縦線。Jotai で再生位置・曲データを保持。
 
 ### Phase 3: ピッチ検出・歌唱の音程バー
 
@@ -350,7 +350,7 @@ function computeScore(
 
 1. **音程一致率**: 歌唱終了時に `computeScore` で算出し、「音程一致率 XX%」＋「保存する？」「保存しない」を表示（MUI のダイアログやボタン利用可）。
 2. **保存**: 「保存する」なら録音 Blob とメタデータ（pitchData, score 含む）を **Dexie（IndexedDB）** に保存（直近 1 件で上書き）。「今すぐ再生」を表示。
-3. **再生画面**: IndexedDB から直近 1 件を読み込む。**直近 1 件がない**ときは**「まだ録音がありません」**を表示し、**「練習する」**で練習画面へ誘導。あるときは**伴奏（カラオケ MP3）＋歌声**を同時に再生し、曲の音程バー＋歌唱の音程バー＋**歌詞**（再生位置に同期）＋「練習に戻る」を表示する。
+3. **再生画面**: IndexedDB から直近 1 件を読み込む。**直近 1 件がない**ときは**「まだ録音がありません」**を表示し、**「練習する」**で練習画面へ誘導。あるときは**伴奏＋歌声**を同時に再生し、**ガイドボーカル切替**ボタンでオケ／歌ありを切り替え可能。曲の音程バー＋歌唱の音程バー＋**歌詞**（再生位置に同期）＋「練習に戻る」を表示する。
 
 ### Phase 5: 仕上げ（Web のみ）
 
@@ -388,8 +388,9 @@ function computeScore(
 │   │           └── lyrics.json     # 歌詞（time: 秒, lyric の配列）。constants に格納
 │   └── ...
 ├── public/
-│           ├── BNM_MIDI.mid        # サンプル曲 MIDI（メロディ用。歌詞・伴奏トラックは使わない）
-│           └── Brand_New_Music_inst.wav  # オケ音源
+│           ├── BNM_MIDI.mid            # サンプル曲 MIDI（メロディ用。歌詞・伴奏トラックは使わない）
+│           ├── Brand_New_Music_inst.wav  # オケ音源
+│           └── Brand_New_Music.wav       # ガイドボーカル音源（歌あり）
 ├── index.html
 ├── vite.config.ts
 ├── package.json
@@ -438,12 +439,13 @@ pnpm build
 - [ ] **MUI**（ThemeProvider, 必要コンポーネント）を導入済み
 - [ ] **Dexie.js** で IndexedDB を導入し、直近 1 件の保存・読み込みが動作する
 - [ ] pitchfinder、Web Audio API でピッチ検出を実装済み
-- [ ] **サンプル曲** BNM_MIDI.mid を `public/BNM_MIDI.mid`、**Brand_New_Music_inst.wav** を `public/Brand_New_Music_inst.wav`、**lyrics.json** を `app/constants/lyrics.json` に配置済み（オケ音源で再生。MIDI の伴奏トラックは使わない）
+- [ ] **サンプル曲** BNM_MIDI.mid、**Brand_New_Music_inst.wav**（オケ）、**Brand_New_Music.wav**（歌あり）、**lyrics.json** を配置済み。練習・再生中に**ガイドボーカル切替**ボタンでオケ／歌ありを切り替え可能
 - [ ] **「歌唱開始」**で伴奏再生と録音・ピッチ検出が同時に開始する
+- [ ] **ガイドボーカル切替**ボタンでオケ／歌ありを切り替えられる（練習画面・再生画面）
 - [ ] 音程バーが**五線譜**で表示される
 - [ ] **pitchData の 0ms** が「歌唱開始」押下時になっている
 - [ ] **停止**で録音も止まり、歌唱終了として結果表示される
-- [ ] **再生画面**で**伴奏＋歌声**が同時に鳴る（直近 1 件があるとき）
+- [ ] **再生画面**で**伴奏＋歌声**が同時に鳴り、**ガイドボーカル切替**でオケ／歌ありを切り替えられる（直近 1 件があるとき）
 - [ ] **直近 1 件がない**ときに再生画面へ行くと**「まだ録音がありません」**が表示され、「練習する」等で練習画面へ誘導できる
 - [ ] **五線譜**は簡易描画で、曲の最低〜最高ノートが写る（調号・拍子は省略）
 - [ ] **歌詞**が **lyrics.json** から取得され、**再生位置に同期して**練習画面・再生画面に表示される（歌詞が無い曲では非表示でよい）
@@ -479,7 +481,7 @@ PoC では含めないが、将来的に**ピッチ変更**（オケ音源など
 
 ## 12. 楽曲制作チームとの連携
 
-アプリは **ガイド用 MIDI**（ノートデータのみ。再生には使わない）、**lyrics.json**（歌詞）、**オケ音源**（Brand_New_Music_inst.wav）を扱う。**ガイドボーカル音源**は拡張で対応（PoC では省略可）。  
+アプリは **ガイド用 MIDI**（ノートデータのみ。再生には使わない）、**lyrics.json**（歌詞）、**オケ音源**（Brand_New_Music_inst.wav）、**ガイドボーカル音源**（Brand_New_Music.wav、歌あり）を扱う。PoC では練習・再生中にボタンでオケ／歌ありを切り替え可能。  
 MIDI は DTM 用音源で再生する想定のためそのまま再生するとサイン波等になるので、**オケ音源・ガイドボーカル音源・ガイド用 MIDI の 3 ファイルを同時に扱う**責任分けが適切。以下を制作チームに依頼・確認する。
 
 ### 12.1 依頼・質問のまとめ
@@ -487,7 +489,7 @@ MIDI は DTM 用音源で再生する想定のためそのまま再生すると�
 | 種別 | 内容 |
 |------|------|
 | **ガイド用 MIDI で必要なもの** | メロディ用トラック 1 本（各ノート: 音高・開始・終了時刻）。**再生には使わない**（ノートデータのみ。そのまま再生するとサイン波等になる）。複数トラック時は識別ルールを決める（例: 1 本目／トラック名 "Vocal" や "Melody"）。BPM（固定なら値、可変ならテンポトラックの仕様を共有）。 |
-| **別提供するもの** | **オケ音源** → Brand_New_Music_inst.wav（曲頭 0 秒がガイド用 MIDI と一致）。**歌詞** → lyrics.json（`{ time: 秒, lyric }[]`）。**ガイドボーカル音源** → 拡張で「正解の歌を聴く」用（PoC では省略可）。MIDI の Lyrics・伴奏トラックは使わない。 |
+| **別提供するもの** | **オケ音源** → Brand_New_Music_inst.wav（曲頭 0 秒がガイド用 MIDI と一致）。**ガイドボーカル音源** → Brand_New_Music.wav（歌あり、正解の歌を聴く用。PoC で再生中にオケと切替可能）。**歌詞** → lyrics.json（`{ time: 秒, lyric }[]`）。MIDI の Lyrics・伴奏トラックは使わない。 |
 | **確認したいこと** | BPM は曲中で変わるか？ メロディに和音がある場合の正解ピッチの扱い（一番高い音／無視 等）？ オケ音源とガイド用 MIDI の曲頭 0ms は一致しているか？ |
 
 ### 12.2 命名規則
@@ -498,7 +500,7 @@ MIDI は DTM 用音源で再生する想定のためそのまま再生すると�
 | フォルダ（歌詞） | `app/constants/songs/<songId>/`。lyrics.json は constants に格納する。 |
 | ガイド用 MIDI | 1 曲 1 ファイル。例: `BNM_MIDI.mid` または `<songId>.mid`。ノートデータのみ使用、再生には使わない。 |
 | オケ音源 | `Brand_New_Music_inst.wav`。曲頭がガイド用 MIDI と一致。 |
-| ガイドボーカル音源 | 拡張で使用（例: `guide_vocal.mp3`）。PoC では省略可。 |
+| ガイドボーカル音源 | Brand_New_Music.wav（歌あり）。PoC で練習・再生中にボタンでオケと切り替え可能。 |
 | 歌詞 | `app/constants/songs/<songId>/lyrics.json`（`{ time: number; lyric: string }[]`）。`time` は曲頭からの秒。歌詞が無い曲は用意しない。 |
 | メロディ識別 | ガイド用 MIDI 内でトラック名 "Vocal"／"Melody" または 1 本目＝メロディ。 |
 
@@ -507,9 +509,9 @@ MIDI は DTM 用音源で再生する想定のためそのまま再生すると�
 - **メロディ**: ガイド用 MIDI の指定トラックのノート → `startMs`, `endMs`, `pitch`。tick→ms は BPM で変換。音程バー・一致率に使用。**再生には使わない**。
 - **歌詞**: lyrics.json → `LyricEntry[]`。再生位置に同期表示。
 - **オケ**: Brand_New_Music_inst.wav（オケ音源）を再生。歌唱開始位置（unitStartMs）からシーク。
-- **ガイドボーカル**: 拡張で別音源（例: guide_vocal.mp3）を再生。PoC では省略。
+- **ガイドボーカル**: Brand_New_Music.wav（歌あり）を再生。PoC では練習・再生中にボタンでオケと切り替え可能。
 - **曲長**: ガイド用 MIDI の `totalDurationMs`。オケ音源の長さは曲長と一致の想定。
 
 ---
 
-この 1 ファイルで、React + Vite + ファイルベースルーティング + Capacitor 版 PoC の仕様・データ・実装手順を一通り参照できます。midikaraoke.app を参考に「曲選択 → 曲設定 → 歌唱開始・一時停止」の流れを入れつつ、音程一致率・保存・再生は従来仕様を維持しています。PoC 後に保存一覧・ガイド／ボーカル on/off や**歌唱テクニック検出**を追加する場合は、本ドキュメントの該当節を拡張してタスクに落とし込んでください。
+この 1 ファイルで、React + Vite + ファイルベースルーティング + Capacitor 版 PoC の仕様・データ・実装手順を一通り参照できます。midikaraoke.app を参考に「曲選択 → 曲設定 → 歌唱開始・一時停止」の流れを入れつつ、音程一致率・保存・再生は従来仕様を維持しています。**ガイドボーカル**（オケ／歌ありの切替）は PoC に含める。PoC 後に保存一覧や**歌唱テクニック検出**を追加する場合は、本ドキュメントの該当節を拡張してタスクに落とし込んでください。

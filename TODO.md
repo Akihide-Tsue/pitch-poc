@@ -7,7 +7,7 @@
 - [x] **1-3** UI: MUI の ThemeProvider, CssBaseline を root に配置
 - [x] **1-4** 保存: `lib/db.ts` で Dexie IndexedDB を定義
 - [x] **1-5** 保存: `lib/storage.ts` で getLastSavedRecording / setLastSavedRecording を実装（IndexedDB 不可時はエラー表示のみ）
-- [ ] **1-6** サンプル曲: `public/BNM_MIDI.mid`, `public/Brand_New_Music_inst.wav` を確認。lyrics.json は `app/constants/songs/brand-new-music/lyrics.json` に配置済み
+- [ ] **1-6** サンプル曲: `public/BNM_MIDI.mid`, `public/Brand_New_Music_inst.wav`（オケ）, `public/Brand_New_Music.wav`（歌あり）を確認。lyrics.json は `app/constants/songs/brand-new-music/lyrics.json` に配置済み
 - [x] **1-7** 型・ユーティリティ: `lib/melody.ts`（MelodyNote, MelodyData, LyricEntry, getTargetPitchAtTime）
 - [x] **1-8** 型・ユーティリティ: `lib/pitch.ts`（frequencyToMidi）
 - [x] **1-9** 型・ユーティリティ: `lib/midi.ts`（@tonejs/midi で MIDI パース → MelodyData）
@@ -16,7 +16,7 @@
 ## Phase 2: ホーム・練習画面（ピッチなし）
 
 - [ ] **2-1** ホーム: MUI でレイアウト。曲選択（1 曲固定）・曲設定（任意）。「練習する」で /practice へ遷移
-- [ ] **2-2** 練習画面の骨組み: 「歌唱開始」で伴奏（WAV）と録音・ピッチ検出を同時開始
+- [ ] **2-2** 練習画面の骨組み: 「歌唱開始」で伴奏（オケ WAV）と録音・ピッチ検出を同時開始。**ガイドボーカル切替**ボタンでオケ／歌ありを切り替え
 - [ ] **2-3** 練習画面: 音程バー（五線譜風簡易描画）、歌詞（再生位置に同期）、時間軸・現在位置の縦線
 - [ ] **2-4** 練習画面: Jotai で再生位置・曲データを保持
 
@@ -33,7 +33,7 @@
 - [ ] **4-2** 保存: 「保存する」なら録音 Blob とメタデータ（pitchData, score）を Dexie に保存。「今すぐ再生」を表示
 - [ ] **4-3** 再生画面: IndexedDB から直近 1 件を読み込み
 - [ ] **4-4** 再生画面（空）: 直近 1 件がないときは「まだ録音がありません」＋「練習する」で誘導
-- [ ] **4-5** 再生画面（あり）: 伴奏＋歌声を同時再生、曲の音程バー＋歌唱の音程バー＋歌詞（同期）＋「練習に戻る」
+- [ ] **4-5** 再生画面（あり）: 伴奏＋歌声を同時再生、**ガイドボーカル切替**ボタンでオケ／歌ありを切り替え、曲の音程バー＋歌唱の音程バー＋歌詞（同期）＋「練習に戻る」
 
 ## Phase 5: 仕上げ（Web のみ）
 
