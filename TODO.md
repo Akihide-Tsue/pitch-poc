@@ -7,7 +7,7 @@
 - [x] **1-3** UI: MUI の ThemeProvider, CssBaseline を root に配置
 - [x] **1-4** 保存: `lib/db.ts` で Dexie IndexedDB を定義
 - [x] **1-5** 保存: `lib/storage.ts` で getLastSavedRecording / setLastSavedRecording を実装（IndexedDB 不可時はエラー表示のみ）
-- [ ] **1-6** サンプル曲: `public/BNM_MIDI.mid`, `public/Brand_New_Music_inst.wav`（オケ）, `public/Brand_New_Music.wav`（歌あり）を確認。lyrics.json は `app/constants/songs/brand-new-music/lyrics.json` に配置済み
+- [x] **1-6** サンプル曲: `public/BNM_MIDI.mid`, `public/Brand_New_Music_inst.wav`（オケ）, `public/Brand_New_Music.wav`（歌あり）を確認。lyrics.json は `app/constants/songs/brand-new-music/lyrics.json` に配置済み
 - [x] **1-7** 型・ユーティリティ: `lib/melody.ts`（MelodyNote, MelodyData, LyricEntry, getTargetPitchAtTime）
 - [x] **1-8** 型・ユーティリティ: `lib/pitch.ts`（frequencyToMidi）
 - [x] **1-9** 型・ユーティリティ: `lib/midi.ts`（@tonejs/midi で MIDI パース → MelodyData）
